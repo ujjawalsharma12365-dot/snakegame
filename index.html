@@ -1,0 +1,687 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>Cyber Neon Snake Mobile</title>
+
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@600;800;900&family=Rajdhani:wght@500;600;700&display=swap" rel="stylesheet">
+
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <!-- Mobile-First Cyber Styles -->
+    <style>
+        * {
+            box-sizing: border-box;
+            user-select: none;
+            -webkit-user-select: none;
+            -webkit-touch-callout: none;
+            touch-action: none; /* Prevents unwanted browser pull-to-refresh & zoom */
+        }
+
+        html, body {
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            background-color: #030712;
+            font-family: 'Rajdhani', sans-serif;
+            color: #f3f4f6;
+        }
+
+        .font-orbitron {
+            font-family: 'Orbitron', sans-serif;
+        }
+
+        /* Glassmorphism Cards */
+        .glass-panel {
+            background: rgba(15, 23, 42, 0.85);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(0, 240, 255, 0.3);
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.6);
+        }
+
+        /* Glowing Neon Effects */
+        .neon-glow-cyan {
+            text-shadow: 0 0 10px rgba(0, 240, 255, 0.8), 0 0 20px rgba(0, 240, 255, 0.4);
+        }
+
+        .neon-glow-gold {
+            text-shadow: 0 0 10px rgba(250, 204, 21, 0.8);
+        }
+
+        .cyber-border {
+            border: 1px solid rgba(0, 240, 255, 0.4);
+        }
+
+        /* Interactive Buttons */
+        .cyber-btn {
+            background: linear-gradient(135deg, rgba(0, 240, 255, 0.2), rgba(168, 85, 247, 0.2));
+            border: 1px solid rgba(0, 240, 255, 0.5);
+            transition: all 0.15s ease-in-out;
+            text-shadow: 0 0 6px rgba(0, 240, 255, 0.8);
+        }
+
+        .cyber-btn:active {
+            transform: scale(0.95);
+            background: linear-gradient(135deg, rgba(0, 240, 255, 0.5), rgba(168, 85, 247, 0.5));
+            box-shadow: 0 0 15px rgba(0, 240, 255, 0.6);
+        }
+
+        .dpad-btn {
+            background: rgba(30, 41, 59, 0.8);
+            border: 1px solid rgba(0, 240, 255, 0.3);
+            transition: all 0.1s ease;
+        }
+
+        .dpad-btn:active {
+            background: rgba(0, 240, 255, 0.5);
+            border-color: #00f0ff;
+            box-shadow: 0 0 12px #00f0ff;
+        }
+
+        /* Pulsing Touch Indicator Visual */
+        .swipe-hint {
+            animation: pulse-glow 2s infinite alternate;
+        }
+
+        @keyframes pulse-glow {
+            0% { opacity: 0.5; transform: scale(0.98); }
+            100% { opacity: 1; transform: scale(1.02); }
+        }
+    </style>
+</head>
+<body class="flex flex-col h-screen w-screen justify-between items-center p-2 sm:p-4 select-none">
+
+    <!-- Top Mobile HUD Bar -->
+    <header class="w-full max-w-md z-10 flex flex-col gap-2">
+        <!-- Title & Quick Actions -->
+        <div class="glass-panel rounded-2xl px-3 py-2 flex items-center justify-between">
+            <div class="flex items-center gap-2">
+                <i class="fa-solid fa-staff-snake text-2xl text-cyan-400 animate-pulse"></i>
+                <div>
+                    <h1 class="font-orbitron font-extrabold text-lg text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 via-fuchsia-400 to-yellow-300 leading-none">
+                        NEON<span class="text-cyan-400">SNAKE</span>
+                    </h1>
+                    <p class="text-[9px] text-cyan-300/70 uppercase font-bold tracking-widest">Mobile Edition</p>
+                </div>
+            </div>
+
+            <div class="flex items-center gap-2">
+                <!-- Sound Toggle -->
+                <button id="audioToggleBtn" class="cyber-btn p-2 rounded-xl text-cyan-400" title="Sound">
+                    <i id="audioIcon" class="fa-solid fa-volume-high text-sm"></i>
+                </button>
+                <!-- Pause Toggle -->
+                <button id="pauseBtn" class="cyber-btn p-2 rounded-xl text-yellow-400" title="Pause">
+                    <i id="pauseIcon" class="fa-solid fa-pause text-sm"></i>
+                </button>
+            </div>
+        </div>
+
+        <!-- Score & Difficulty Bar -->
+        <div class="grid grid-cols-3 gap-2">
+            <!-- Current Score -->
+            <div class="glass-panel rounded-xl p-1.5 text-center flex flex-col justify-center">
+                <span class="text-[9px] uppercase font-bold text-slate-400 tracking-wider">Score</span>
+                <span id="scoreVal" class="font-orbitron font-black text-lg text-cyan-400 neon-glow-cyan leading-tight">0</span>
+            </div>
+
+            <!-- Best Score -->
+            <div class="glass-panel rounded-xl p-1.5 text-center flex flex-col justify-center">
+                <span class="text-[9px] uppercase font-bold text-slate-400 tracking-wider">Best</span>
+                <span id="highScoreVal" class="font-orbitron font-black text-lg text-yellow-400 neon-glow-gold leading-tight">0</span>
+            </div>
+
+            <!-- Speed Controller -->
+            <div class="glass-panel rounded-xl p-1.5 text-center flex flex-col justify-center">
+                <span class="text-[9px] uppercase font-bold text-slate-400 tracking-wider mb-0.5">Speed</span>
+                <select id="speedSelect" class="bg-slate-900/90 border border-cyan-500/50 rounded-lg text-cyan-300 text-[11px] font-orbitron font-bold py-0.5 px-1 focus:outline-none text-center cursor-pointer">
+                    <option value="160">EASY</option>
+                    <option value="110" selected>MEDIUM</option>
+                    <option value="70">HARD</option>
+                    <option value="45">TURBO</option>
+                </select>
+            </div>
+        </div>
+    </header>
+
+    <!-- Canvas Game Container -->
+    <main class="relative w-full max-w-md flex-1 my-2 flex items-center justify-center overflow-hidden">
+        <canvas id="gameCanvas" class="w-full h-full rounded-2xl border-2 border-cyan-500/40 shadow-2xl bg-slate-950"></canvas>
+
+        <!-- Overlay Screen Modal (Start / Game Over / Pause) -->
+        <div id="overlayScreen" class="absolute inset-0 rounded-2xl glass-panel flex flex-col items-center justify-center p-6 text-center z-20">
+            <i id="overlayIcon" class="fa-solid fa-hand-pointer text-5xl text-cyan-400 mb-3 animate-bounce"></i>
+            <h2 id="overlayTitle" class="font-orbitron font-black text-2xl text-cyan-300 tracking-wider mb-1">SWIPE TO PLAY</h2>
+            <p id="overlayMessage" class="text-xs text-slate-300 max-w-xs mb-6 font-medium leading-relaxed">
+                Swipe anywhere on screen or use the touch directional pad below to control the Cyber Snake.
+            </p>
+            <button id="startBtn" class="cyber-btn font-orbitron font-bold text-cyan-300 px-8 py-3 rounded-xl tracking-wider text-sm flex items-center gap-2">
+                <i class="fa-solid fa-play"></i> START GAME
+            </button>
+        </div>
+    </main>
+
+    <!-- Footer Mobile Touch Pad Controls -->
+    <footer class="w-full max-w-md z-10 flex flex-col items-center gap-1.5">
+        <!-- Touch Mode Selector Tabs -->
+        <div class="flex items-center justify-between w-full px-2 text-[11px] font-semibold text-slate-400">
+            <span class="flex items-center gap-1 text-cyan-400"><i class="fa-solid fa-fingerprint"></i> Swipe Anywhere</span>
+            <span class="text-slate-500">|</span>
+            <span class="flex items-center gap-1 text-purple-400"><i class="fa-solid fa-gamepad"></i> On-Screen D-Pad</span>
+        </div>
+
+        <!-- Touch D-Pad Layout -->
+        <div class="grid grid-cols-3 grid-rows-2 gap-1.5 w-44 h-28 sm:w-48 sm:h-32">
+            <div></div>
+            <button id="btnUp" class="dpad-btn rounded-xl flex items-center justify-center text-cyan-400 text-lg" aria-label="Up">
+                <i class="fa-solid fa-caret-up"></i>
+            </button>
+            <div></div>
+
+            <button id="btnLeft" class="dpad-btn rounded-xl flex items-center justify-center text-cyan-400 text-lg" aria-label="Left">
+                <i class="fa-solid fa-caret-left"></i>
+            </button>
+            <button id="btnDown" class="dpad-btn rounded-xl flex items-center justify-center text-cyan-400 text-lg" aria-label="Down">
+                <i class="fa-solid fa-caret-down"></i>
+            </button>
+            <button id="btnRight" class="dpad-btn rounded-xl flex items-center justify-center text-cyan-400 text-lg" aria-label="Right">
+                <i class="fa-solid fa-caret-right"></i>
+            </button>
+        </div>
+    </footer>
+
+    <script>
+        // Web Audio Synthesizer & Mobile Haptic Vibration Handler
+        class MobileAudioHaptics {
+            constructor() {
+                this.ctx = null;
+                this.muted = false;
+            }
+
+            init() {
+                if (!this.ctx) {
+                    const AudioCtx = window.AudioContext || window.webkitAudioContext;
+                    this.ctx = new AudioCtx();
+                }
+                if (this.ctx.state === 'suspended') {
+                    this.ctx.resume();
+                }
+            }
+
+            vibrate(ms = 30) {
+                if ('vibrate' in navigator) {
+                    try { navigator.vibrate(ms); } catch (e) {}
+                }
+            }
+
+            playEat() {
+                this.vibrate(25);
+                if (this.muted) return;
+                this.init();
+                const osc = this.ctx.createOscillator();
+                const gain = this.ctx.createGain();
+
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(320, this.ctx.currentTime);
+                osc.frequency.exponentialRampToValueAtTime(880, this.ctx.currentTime + 0.08);
+
+                gain.gain.setValueAtTime(0.2, this.ctx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.01, this.ctx.currentTime + 0.08);
+
+                osc.connect(gain);
+                gain.connect(this.ctx.destination);
+
+                osc.start();
+                osc.stop(this.ctx.currentTime + 0.08);
+            }
+
+            playTurn() {
+                this.vibrate(10);
+                if (this.muted) return;
+                this.init();
+                const osc = this.ctx.createOscillator();
+                const gain = this.ctx.createGain();
+
+                osc.type = 'triangle';
+                osc.frequency.setValueAtTime(220, this.ctx.currentTime);
+                osc.frequency.linearRampToValueAtTime(160, this.ctx.currentTime + 0.04);
+
+                gain.gain.setValueAtTime(0.05, this.ctx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + 0.04);
+
+                osc.connect(gain);
+                gain.connect(this.ctx.destination);
+
+                osc.start();
+                osc.stop(this.ctx.currentTime + 0.04);
+            }
+
+            playCrash() {
+                this.vibrate([100, 50, 100]);
+                if (this.muted) return;
+                this.init();
+                const osc = this.ctx.createOscillator();
+                const gain = this.ctx.createGain();
+
+                osc.type = 'sawtooth';
+                osc.frequency.setValueAtTime(180, this.ctx.currentTime);
+                osc.frequency.exponentialRampToValueAtTime(40, this.ctx.currentTime + 0.35);
+
+                gain.gain.setValueAtTime(0.35, this.ctx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.01, this.ctx.currentTime + 0.35);
+
+                osc.connect(gain);
+                gain.connect(this.ctx.destination);
+
+                osc.start();
+                osc.stop(this.ctx.currentTime + 0.35);
+            }
+        }
+
+        const systemEffects = new MobileAudioHaptics();
+
+        // Canvas Setup & Responsive Dynamic Scaling
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+
+        const GRID_TILES = 20;
+        let tileSize = canvas.width / GRID_TILES;
+
+        function resizeCanvas() {
+            const rect = canvas.parentElement.getBoundingClientRect();
+            const size = Math.floor(Math.min(rect.width, rect.height));
+            canvas.width = size;
+            canvas.height = size;
+            tileSize = size / GRID_TILES;
+            draw();
+        }
+
+        window.addEventListener('resize', resizeCanvas);
+
+        // Game State Variables
+        let snake = [];
+        let food = { x: 0, y: 0, type: 'regular' };
+        let particles = [];
+        let dx = 1;
+        let dy = 0;
+        let nextDx = 1;
+        let nextDy = 0;
+
+        let score = 0;
+        let highScore = parseInt(localStorage.getItem('cyberSnakeHighScore') || '0');
+        let gameInterval = null;
+        let speedMs = 110; // Medium Speed Default
+        let isPaused = false;
+        let isGameOver = true;
+
+        // UI Element References
+        const scoreValEl = document.getElementById('scoreVal');
+        const highScoreValEl = document.getElementById('highScoreVal');
+        const speedSelectEl = document.getElementById('speedSelect');
+        const overlayScreen = document.getElementById('overlayScreen');
+        const overlayIcon = document.getElementById('overlayIcon');
+        const overlayTitle = document.getElementById('overlayTitle');
+        const overlayMessage = document.getElementById('overlayMessage');
+        const startBtn = document.getElementById('startBtn');
+        const pauseBtn = document.getElementById('pauseBtn');
+        const pauseIcon = document.getElementById('pauseIcon');
+        const audioToggleBtn = document.getElementById('audioToggleBtn');
+        const audioIcon = document.getElementById('audioIcon');
+
+        highScoreValEl.innerText = highScore;
+
+        // Reset and Start Game
+        function resetGame() {
+            snake = [
+                { x: 10, y: 10 },
+                { x: 9, y: 10 },
+                { x: 8, y: 10 }
+            ];
+            dx = 1;
+            dy = 0;
+            nextDx = 1;
+            nextDy = 0;
+            score = 0;
+            particles = [];
+            isPaused = false;
+            isGameOver = false;
+
+            scoreValEl.innerText = score;
+            speedMs = parseInt(speedSelectEl.value);
+
+            spawnFood();
+            hideOverlay();
+            updatePauseUI();
+
+            if (gameInterval) clearInterval(gameInterval);
+            gameInterval = setInterval(gameLoop, speedMs);
+        }
+
+        // Main Loop
+        function gameLoop() {
+            if (isPaused || isGameOver) return;
+
+            dx = nextDx;
+            dy = nextDy;
+
+            const head = { x: snake[0].x + dx, y: snake[0].y + dy };
+
+            // Wall Collisions
+            if (head.x < 0 || head.x >= GRID_TILES || head.y < 0 || head.y >= GRID_TILES) {
+                triggerGameOver();
+                return;
+            }
+
+            // Self Collisions
+            for (let i = 0; i < snake.length; i++) {
+                if (head.x === snake[i].x && head.y === snake[i].y) {
+                    triggerGameOver();
+                    return;
+                }
+            }
+
+            snake.unshift(head);
+
+            // Food Collisions
+            if (head.x === food.x && head.y === food.y) {
+                systemEffects.playEat();
+                score += (food.type === 'bonus') ? 25 : 10;
+                scoreValEl.innerText = score;
+
+                if (score > highScore) {
+                    highScore = score;
+                    localStorage.setItem('cyberSnakeHighScore', highScore.toString());
+                    highScoreValEl.innerText = highScore;
+                }
+
+                // Particle Burst Effect
+                createParticleBurst(
+                    food.x * tileSize + tileSize / 2,
+                    food.y * tileSize + tileSize / 2,
+                    food.type === 'bonus' ? '#f59e0b' : '#00f0ff'
+                );
+
+                spawnFood();
+            } else {
+                snake.pop();
+            }
+
+            draw();
+        }
+
+        function createParticleBurst(x, y, color) {
+            for (let i = 0; i < 16; i++) {
+                const angle = Math.random() * Math.PI * 2;
+                const speed = Math.random() * 4 + 1;
+                particles.push({
+                    x: x,
+                    y: y,
+                    vx: Math.cos(angle) * speed,
+                    vy: Math.sin(angle) * speed,
+                    radius: Math.random() * 2.5 + 1,
+                    color: color,
+                    alpha: 1.0,
+                    decay: Math.random() * 0.05 + 0.03
+                });
+            }
+        }
+
+        function spawnFood() {
+            let valid = false;
+            while (!valid) {
+                food.x = Math.floor(Math.random() * GRID_TILES);
+                food.y = Math.floor(Math.random() * GRID_TILES);
+                valid = !snake.some(segment => segment.x === food.x && segment.y === food.y);
+            }
+            food.type = Math.random() > 0.8 ? 'bonus' : 'regular';
+        }
+
+        // Render Visuals
+        function draw() {
+            ctx.fillStyle = '#030712';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            // Draw Neon Grid
+            ctx.strokeStyle = 'rgba(0, 240, 255, 0.06)';
+            ctx.lineWidth = 1;
+            for (let i = 0; i <= canvas.width; i += tileSize) {
+                ctx.beginPath();
+                ctx.moveTo(i, 0);
+                ctx.lineTo(i, canvas.height);
+                ctx.stroke();
+
+                ctx.beginPath();
+                ctx.moveTo(0, i);
+                ctx.lineTo(canvas.width, i);
+                ctx.stroke();
+            }
+
+            // Draw Burst Particles
+            for (let i = particles.length - 1; i >= 0; i--) {
+                const p = particles[i];
+                p.x += p.vx;
+                p.y += p.vy;
+                p.alpha -= p.decay;
+
+                if (p.alpha <= 0) {
+                    particles.splice(i, 1);
+                    continue;
+                }
+
+                ctx.save();
+                ctx.globalAlpha = p.alpha;
+                ctx.fillStyle = p.color;
+                ctx.shadowColor = p.color;
+                ctx.shadowBlur = 6;
+                ctx.beginPath();
+                ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.restore();
+            }
+
+            // Draw Food Orb
+            const foodCenterX = food.x * tileSize + tileSize / 2;
+            const foodCenterY = food.y * tileSize + tileSize / 2;
+            const foodColor = food.type === 'bonus' ? '#f59e0b' : '#00f0ff';
+
+            ctx.save();
+            ctx.fillStyle = foodColor;
+            ctx.shadowColor = foodColor;
+            ctx.shadowBlur = 12;
+            ctx.beginPath();
+            ctx.arc(foodCenterX, foodCenterY, tileSize / 2.4, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.restore();
+
+            // Draw Snake
+            snake.forEach((segment, index) => {
+                const segX = segment.x * tileSize;
+                const segY = segment.y * tileSize;
+
+                ctx.save();
+                if (index === 0) {
+                    // Snake Head
+                    ctx.fillStyle = '#00f0ff';
+                    ctx.shadowColor = '#00f0ff';
+                    ctx.shadowBlur = 10;
+                    ctx.beginPath();
+                    ctx.roundRect(segX + 1, segY + 1, tileSize - 2, tileSize - 2, 5);
+                    ctx.fill();
+
+                    // Eyes
+                    ctx.fillStyle = '#030712';
+                    const eyeOffset = tileSize / 3.8;
+                    ctx.beginPath();
+                    ctx.arc(segX + eyeOffset, segY + eyeOffset, 2, 0, Math.PI * 2);
+                    ctx.arc(segX + tileSize - eyeOffset, segY + eyeOffset, 2, 0, Math.PI * 2);
+                    ctx.fill();
+                } else {
+                    // Body Segments
+                    const gradient = ctx.createLinearGradient(segX, segY, segX + tileSize, segY + tileSize);
+                    gradient.addColorStop(0, '#c084fc');
+                    gradient.addColorStop(1, '#38bdf8');
+
+                    ctx.fillStyle = gradient;
+                    ctx.shadowColor = 'rgba(192, 132, 252, 0.3)';
+                    ctx.shadowBlur = 4;
+                    ctx.beginPath();
+                    ctx.roundRect(segX + 1.5, segY + 1.5, tileSize - 3, tileSize - 3, 4);
+                    ctx.fill();
+                }
+                ctx.restore();
+            });
+        }
+
+        // Direction Helper
+        function setDirection(newDx, newDy) {
+            if (isGameOver || isPaused) return;
+            if (newDx === -dx && newDy === -dy) return; // Prevent reversing
+
+            if (nextDx !== newDx || nextDy !== newDy) {
+                systemEffects.playTurn();
+            }
+
+            nextDx = newDx;
+            nextDy = newDy;
+        }
+
+        // Full Screen Touch Swipe Gesture Handler
+        let touchStartX = 0;
+        let touchStartY = 0;
+
+        document.addEventListener('touchstart', (e) => {
+            const touch = e.touches[0];
+            touchStartX = touch.clientX;
+            touchStartY = touch.clientY;
+        }, { passive: true });
+
+        document.addEventListener('touchend', (e) => {
+            if (!touchStartX || !touchStartY) return;
+            const touch = e.changedTouches[0];
+            const diffX = touch.clientX - touchStartX;
+            const diffY = touch.clientY - touchStartY;
+
+            const minSwipeThreshold = 20; // Pixel threshold for swipe sensitivity
+
+            if (Math.abs(diffX) > Math.abs(diffY)) {
+                // Horizontal Swipe
+                if (Math.abs(diffX) > minSwipeThreshold) {
+                    if (diffX > 0) setDirection(1, 0);
+                    else setDirection(-1, 0);
+                }
+            } else {
+                // Vertical Swipe
+                if (Math.abs(diffY) > minSwipeThreshold) {
+                    if (diffY > 0) setDirection(0, 1);
+                    else setDirection(0, -1);
+                }
+            }
+
+            touchStartX = 0;
+            touchStartY = 0;
+        }, { passive: true });
+
+        // D-Pad Button Event Listeners
+        document.getElementById('btnUp').addEventListener('click', () => setDirection(0, -1));
+        document.getElementById('btnDown').addEventListener('click', () => setDirection(0, 1));
+        document.getElementById('btnLeft').addEventListener('click', () => setDirection(-1, 0));
+        document.getElementById('btnRight').addEventListener('click', () => setDirection(1, 0));
+
+        // Keyboard Controls Fallback
+        document.addEventListener('keydown', (e) => {
+            if (['ArrowUp', 'KeyW'].includes(e.code)) setDirection(0, -1);
+            if (['ArrowDown', 'KeyS'].includes(e.code)) setDirection(0, 1);
+            if (['ArrowLeft', 'KeyA'].includes(e.code)) setDirection(-1, 0);
+            if (['ArrowRight', 'KeyD'].includes(e.code)) setDirection(1, 0);
+            if (e.code === 'Space') togglePause();
+        });
+
+        function triggerGameOver() {
+            isGameOver = true;
+            clearInterval(gameInterval);
+            systemEffects.playCrash();
+
+            showOverlay(
+                'fa-skull text-red-500 animate-bounce',
+                'SYSTEM CRASH',
+                `Game Over! Score: ${score}`,
+                'RESTART'
+            );
+        }
+
+        function togglePause() {
+            if (isGameOver) return;
+            isPaused = !isPaused;
+            updatePauseUI();
+
+            if (isPaused) {
+                showOverlay(
+                    'fa-circle-pause text-yellow-400',
+                    'GAME PAUSED',
+                    'Touch resume to continue your run.',
+                    'RESUME'
+                );
+            } else {
+                hideOverlay();
+            }
+        }
+
+        function updatePauseUI() {
+            pauseIcon.className = isPaused ? 'fa-solid fa-play text-sm' : 'fa-solid fa-pause text-sm';
+        }
+
+        speedSelectEl.addEventListener('change', () => {
+            speedMs = parseInt(speedSelectEl.value);
+            if (!isGameOver && !isPaused) {
+                clearInterval(gameInterval);
+                gameInterval = setInterval(gameLoop, speedMs);
+            }
+        });
+
+        function showOverlay(iconClass, title, message, buttonText) {
+            overlayIcon.className = `fa-solid ${iconClass} text-5xl mb-3`;
+            overlayTitle.innerText = title;
+            overlayMessage.innerText = message;
+            startBtn.innerHTML = `<i class="fa-solid fa-play"></i> ${buttonText}`;
+            overlayScreen.classList.remove('hidden');
+        }
+
+        function hideOverlay() {
+            overlayScreen.classList.add('hidden');
+        }
+
+        // Action Handlers
+        startBtn.addEventListener('click', () => {
+            systemEffects.init();
+            if (isPaused && !isGameOver) {
+                togglePause();
+            } else {
+                resetGame();
+            }
+        });
+
+        pauseBtn.addEventListener('click', () => togglePause());
+
+        audioToggleBtn.addEventListener('click', () => {
+            systemEffects.muted = !systemEffects.muted;
+            audioIcon.className = systemEffects.muted ?
+                'fa-solid fa-volume-xmark text-sm text-slate-500' :
+                'fa-solid fa-volume-high text-sm text-cyan-400';
+        });
+
+        // Initialize Canvas Size on Load
+        window.onload = () => {
+            resizeCanvas();
+        };
+    </script>
+</body>
+</html>
